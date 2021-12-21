@@ -1,5 +1,6 @@
 import pytest
-from miniature_lighting_desk import server
+from miniature_lighting_desk import server, MockServer
+import jsonrpclib
 
 
 class MockChannel:
@@ -14,12 +15,8 @@ class MockChannel:
 
 
 @pytest.fixture
-def Server(mocker):
-    """Server with mocked hal"""
-    controller = mocker.patch("miniature_lighting_desk.server.hal.Controller")
-    s = server.Server()
-    s.channels = [MockChannel()] * 8
-    s.sync()
+def Server():
+    s = MockServer()
     with s:
         yield s
 
@@ -33,3 +30,13 @@ def test_set(Server):
         assert Server.get(i) != 199
         Server.set(i, 199)
         assert Server.get(i) == 199
+
+
+def test_jsonrpc(Server):
+    s = jsonrpclib.Server(f"http://localhost:{Server.port}")
+    s.sync()
+    assert s.get(0) == 0
+    s.set(1, 20)
+    assert s.get(1) == 20
+    with pytest.raises(jsonrpclib.jsonrpc.ProtocolError):
+        s.nosuchmethod(22)

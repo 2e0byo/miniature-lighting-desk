@@ -38,6 +38,7 @@ class Server:
         assert proc
         self.server_thread.start()
         self._logger.info(f"Started server at {self.ip} on port {self.port}")
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         proc = self.server_thread
