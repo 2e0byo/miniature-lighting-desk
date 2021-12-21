@@ -13,7 +13,9 @@ class Server:
         self.sync()
 
     def set(self, channel: int, val: int):
-        self.channels[channel].set_brightness(val)
+        if self.vals[channel] != val:
+            self.channels[channel].set_brightness(val)
+        self.vals[channel] = val
 
     def get(self, channel: int):
         return self.vals[channel]
