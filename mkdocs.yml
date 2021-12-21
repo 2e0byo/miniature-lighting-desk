@@ -1,0 +1,41 @@
+site_name: "Miniature Lighting Desk"
+site_description: "Desk controls for Miniature Lighting Controller"
+site_url: "https://2e0byo.github.io/miniature-lighting-desk"
+repo_url: "https://github.com/2e0byo/miniature-lighting-desk"
+repo_name: "2e0byo/miniature-lighting-desk"
+site_dir: "site"
+
+nav:
+- Home:
+  - Overview: overview.md
+  - Installation: installation.md
+  - Changelog: changelog.md
+  - License: license.md
+- Local Desk: local.md
+- Web Desk: web.md
+
+theme:
+  name: material
+  features:
+  - navigation.tabs
+  palette:
+    scheme: slate
+    primary: teal
+    accent: purple
+
+markdown_extensions:
+- admonition
+- pymdownx.emoji
+- pymdownx.magiclink
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences
+- pymdownx.details
+- pymdownx.tabbed
+- pymdownx.tasklist
+- markdown.extensions.smarty
+- toc:
+    permalink: "¤"
+
+plugins:
+- search
