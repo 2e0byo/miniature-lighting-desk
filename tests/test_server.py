@@ -1,5 +1,5 @@
 import pytest
-import miniature_lighting_desk.server as server
+from miniature_lighting_desk import server
 
 
 class MockChannel:
@@ -20,8 +20,8 @@ def Server(mocker):
     s = server.Server()
     s.channels = [MockChannel()] * 8
     s.sync()
-
-    yield s
+    with s:
+        yield s
 
 
 def test_init(Server):
