@@ -14,21 +14,22 @@ class Server:
     DEFAULT_PORT = 3227
     instances = []
 
-    def __init__(self, channels: int = 8):
+    def __init__(self, channels: int = 8, channel=None, controller=None):
         self.name = f"Server-{len(self.instances)}"
         self.instances.append(self.name)
         self._logger = getLogger(self.name)
 
-        self.controller = hal.Controller()
-        self.channels = [hal.Channel(self.controller, i) for i in range(channels)]
+        self.controller = controller() if controller else hal.Controller()
+        channel = channel or hal.Channel
+        self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []
         self.sync()
         self._port = None
         self._ip = None
         self.server_thread = None
         server = SimpleJSONRPCServer(("localhost", self.port))
-        server.register_function(self.set)
-        server.register_function(self.get)
+        server.register_function(self.set_brightness)
+        server.register_function(self.get_brightness)
         server.register_function(self.sync)
         self.server = server
 
@@ -69,17 +70,20 @@ class Server:
                 ) as s:
                     self._port = s.server_address[1]
             except Exception as e:
+                print(e)
                 with socketserver.TCPServer(("localhost", 0), None) as s:
                     self._port = s.server_address[1]
 
         return self._port
 
-    def set(self, channel: int, val: int):
+    def set_brightness(self, channel: int, val: int):
         if self.vals[channel] != val:
+            self._logger.debug(f"Setting channel {channel} to val {val}")
             self.channels[channel].set_brightness(val)
         self.vals[channel] = val
 
-    def get(self, channel: int):
+    def get_brightness(self, channel: int):
+        self._logger.debug(f"Got {self.vals[channel]} for channel {channel}")
         return self.vals[channel]
 
     def sync(self):
