@@ -1,17 +1,21 @@
-from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
-from multiprocessing import Process
-import socketserver
+import asyncio
+import contextlib
 import socket
+import socketserver
+import threading
+import time
 from logging import getLogger
-import logging
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi_websocket_rpc import RpcMethodsBase, WebsocketRPCEndpoint
 
 from . import async_hal as hal
 
 
-class Server:
+class ControllerServer(RpcMethodsBase):
     """Server controlling a miniature lighting controller."""
 
-    DEFAULT_PORT = 3227
     instances = []
 
     def __init__(self, channels: int = 8, channel=None, controller=None):
@@ -24,34 +28,49 @@ class Server:
         self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []
         self.sync()
-        self._port = None
+
+    async def ping(self):
+        return "hello"
+
+    async def set_brightness(self, *, channel: int, val: int):
+        if self.vals[channel] != val:
+            self._logger.debug(f"Setting channel {channel} to val {val}")
+            self.channels[channel].set_brightness(val)
+            self.vals[channel] = val
+
+    async def get_brightness(self, *, channel: int):
+        self._logger.debug(f"Got {self.vals[channel]} for channel {channel}")
+        return self.vals[channel]
+
+    def sync(self):
+        self.vals = [channel.get_brightness() for channel in self.channels]
+
+
+class SocketServer(uvicorn.Server):
+    """Socket Server exposing a controller."""
+
+    instances = []
+    DEFAULT_PORT = 3227
+
+    def __init__(
+        self,
+        *args,
+        controller_server: ControllerServer,
+        endpoint: str = "/ws",
+        **kwargs,
+    ):
+        self.name = f"SocketServer-{len(self.instances)}"
+        self.instances.append(self.name)
+        self._logger = getLogger(self.name)
         self._ip = None
-        self.server_thread = None
-        server = SimpleJSONRPCServer(("localhost", self.port))
-        server.register_function(self.set_brightness)
-        server.register_function(self.get_brightness)
-        server.register_function(self.sync)
-        self.server = server
-
-    def __enter__(self):
-        self.server_thread = Process(target=self.server.serve_forever)
-        proc = self.server_thread
-        assert proc
-        self.server_thread.start()
-        self._logger.info(f"Started server at {self.ip} on port {self.port}")
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        proc = self.server_thread
-        proc.terminate()
-        proc.join(2)
-        if proc.is_alive():
-            self._logger.info("Server failed to die; killing...")
-            proc.kill()
-            proc.join(2)
-            if proc.is_alive():
-                raise Exception("Failed to kill server thread.")
-        self._logger.info("Server died.")
+        self._port = None
+        self._app = FastAPI()
+        self._controller = controller_server
+        self.endpoint = endpoint
+        self._endpoint = WebsocketRPCEndpoint(self._controller)
+        self._endpoint.register_route(self._app, self.endpoint)
+        config = uvicorn.Config(self._app, port=self.port, host="0.0.0.0")
+        super().__init__(*args, **kwargs, config=config)
 
     @property
     def ip(self):
@@ -70,21 +89,31 @@ class Server:
                 ) as s:
                     self._port = s.server_address[1]
             except Exception as e:
-                print(e)
+                self._logger.exception(e)
                 with socketserver.TCPServer(("localhost", 0), None) as s:
                     self._port = s.server_address[1]
 
         return self._port
 
-    def set_brightness(self, channel: int, val: int):
-        if self.vals[channel] != val:
-            self._logger.debug(f"Setting channel {channel} to val {val}")
-            self.channels[channel].set_brightness(val)
-        self.vals[channel] = val
+    def install_signal_handlers(self):
+        """Prevent signal handlers from being installed."""
 
-    def get_brightness(self, channel: int):
-        self._logger.debug(f"Got {self.vals[channel]} for channel {channel}")
-        return self.vals[channel]
+    @contextlib.contextmanager
+    def run_in_thread(self):
+        port = self.port
+        ip = self.ip
+        self._logger.info(f"Starting server at {ip} on port {port}")
+        thread = threading.Thread(target=self.run)
+        thread.start()
+        try:
+            while not self.started:
+                time.sleep(1e-3)
+            yield self._controller
+        finally:
+            self.should_exit = True
+            thread.join()
 
-    def sync(self):
-        self.vals = [channel.get_brightness() for channel in self.channels]
+
+def Server():
+    """Standard server."""
+    return SocketServer(controller_server=ControllerServer())

@@ -5,7 +5,7 @@ from multiprocessing import Queue
 from queue import Empty
 
 
-from .server import Server
+from .server import ControllerServer, SocketServer
 
 COLORS = ("red", "orange", "yellow", "green", "blue", "indigo", "black", "gold")
 
@@ -21,14 +21,16 @@ class MockChannel:
         self.val = max(0, min(255, val))
 
 
-class MockServer(Server):
+class MockServer(SocketServer):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, channel=MockChannel, controller=MagicMock)
+        controller = ControllerServer(channel=MockChannel, controller=MagicMock)
+        super().__init__(*args, **kwargs, controller_server=controller)
 
 
-class MockGuiServer(Server):
+class MockGuiServer(MockServer):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, channel=MockChannel, controller=MagicMock)
+        super().__init__(*args, **kwargs)
+
         self.queue = Queue()
         root = Tk()
         root.title("Mock Lighting Controller")
