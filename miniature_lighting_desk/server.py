@@ -1,25 +1,66 @@
 import asyncio
-import contextlib
-import socket
-import socketserver
-import threading
-import time
 from logging import getLogger
+from unittest.mock import MagicMock
 
-import uvicorn
-from fastapi import FastAPI
-from fastapi_websocket_rpc import RpcMethodsBase, WebsocketRPCEndpoint
-from fastapi_websocket_pubsub import PubSubEndpoint
+from autobahn.asyncio.component import Component, run
 
 from . import async_hal as hal
 
 
-class ControllerServer(RpcMethodsBase):
-    """Server controlling a miniature lighting controller."""
+class MockChannel:
+    def __init__(self, *args):
+        self.val = 0
+
+    def get_brightness(self):
+        return self.val
+
+    def set_brightness(self, val):
+        self.val = max(0, min(255, val))
+
+
+class Timer:
+    def __init__(self, func, delay_ms: int):
+        self._func = func
+        self._delay_ms = delay_ms
+        self.remaining_ms = delay_ms * 1000
+        self.running = False
+        self._started = False
+
+    async def start(self):
+        self.running = True
+        if not self._started:
+            asyncio.create_task(self._loop())
+
+    async def reset(self):
+        self.remaining_ms = self._delay_ms
+
+    async def _loop(self):
+        while True:
+            while self.running:
+                await asyncio.sleep(0.01)
+                self.remaining_ms -= 10
+                if self.remaining_ms <= 0:
+                    await self._func()
+                    self.running = False
+                    self.remaining_ms = self._delay_ms
+
+            while not self.running:
+                await asyncio.sleep(0.01)
+
+
+class Backend:
+    """Backend controlling a miniature lighting controller."""
 
     instances = []
 
-    def __init__(self, channels: int = 8, channel=None, controller=None):
+    def __init__(
+        self,
+        *,
+        component: Component,
+        channels: int = 8,
+        channel=None,
+        controller=None,
+    ):
         self.name = f"ControllerServer-{len(self.instances)}"
         self.instances.append(self.name)
         self._logger = getLogger(self.name)
@@ -28,23 +69,40 @@ class ControllerServer(RpcMethodsBase):
         channel = channel or hal.Channel
         self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []
-        self._pubsub_endpoint: PubSubEndpoint = None
         self.sync()
+        self.component = component
+        component.on_join(self.join)
+        self.timer = Timer(self.publish, 10000)
+
+        component.register("sync")(self.sync)
+        component.register("get_brightness")(self.get_brightness)
+        component.register("set_brightness")(self.set_brightness)
+        component.register("details")(self.details)
+
+    def run(self):
+        run([self.component])
+
+    def join(self, session, details):
+        self.session = session
+        self._logger.info(f"Joined {session} {details}")
 
     async def ping(self):
         return "hello"
 
+    async def details(self):
+        return dict(channels=len(self.vals), name=self.name)
+
     async def set_brightness(self, *, channel: int, val: int):
         if self.vals[channel] != val:
-            self._logger.debug(f"Setting channel {channel} to val {val}")
+            await self.timer.reset()
+            await self.timer.start()
+            self._logger.info(f"Setting channel {channel} to val {val}")
             self.channels[channel].set_brightness(val)
             self.vals[channel] = val
-            if self._pubsub_endpoint:
-                self._logger.debug(f"Publishing update.")
-                self._pubsub_endpoint.publish(
-                    ("update"),
-                    data=dict(zip(range(len(self.channels)), self.channels)),
-                )
+
+    async def publish(self):
+        self._logger.info("Publishing satechange")
+        self.session.publish("controller.statechange", self.vals)
 
     async def get_brightness(self, *, channel: int):
         self._logger.debug(f"Got {self.vals[channel]} for channel {channel}")
@@ -54,81 +112,27 @@ class ControllerServer(RpcMethodsBase):
         self.vals = [channel.get_brightness() for channel in self.channels]
 
 
-class SocketServer(uvicorn.Server):
-    """Socket Server exposing a controller."""
-
-    instances = []
-    DEFAULT_PORT = 3227
-    DEFAULT_ENDPOINT = "/ws"
-    DEFAULT_PUBSUB_ENDPOINT = "/pubsub"
+class MockBackend(Backend):
+    """A backend with the hardware mocked away."""
 
     def __init__(
         self,
-        *args,
-        controller_server: ControllerServer,
-        endpoint: str = None,
-        pubsub_endpoint: str = None,
         **kwargs,
     ):
-        self.name = f"SocketServer-{len(self.instances)}"
-        self.instances.append(self.name)
-        self._logger = getLogger(self.name)
-        self._ip = None
-        self._port = None
-        self._app = FastAPI()
-        self._controller = controller_server
-        self.endpoint = endpoint or self.DEFAULT_ENDPOINT
-        self._endpoint = WebsocketRPCEndpoint(self._controller)
-        self._endpoint.register_route(self._app, self.endpoint)
-        self.pubsub_endpoint = pubsub_endpoint or self.DEFAULT_PUBSUB_ENDPOINT
-        self._pubsub_endpoint = PubSubEndpoint()
-        self._pubsub_endpoint.register_route(self._app, self.pubsub_endpoint)
-        self._controller._pubsub_endpoint = self._pubsub_endpoint
-        config = uvicorn.Config(self._app, port=self.port, host="0.0.0.0")
-        super().__init__(*args, **kwargs, config=config)
-
-    @property
-    def ip(self):
-        if not self._ip:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-                sock.connect(("8.8.8.8", 80))
-                self._ip = sock.getsockname()[0]
-        return self._ip
-
-    @property
-    def port(self) -> int:
-        if not self._port:
-            try:
-                with socketserver.TCPServer(
-                    ("localhost", self.DEFAULT_PORT), None
-                ) as s:
-                    self._port = s.server_address[1]
-            except Exception as e:
-                self._logger.exception(e)
-                with socketserver.TCPServer(("localhost", 0), None) as s:
-                    self._port = s.server_address[1]
-
-        return self._port
-
-    def install_signal_handlers(self):
-        """Prevent signal handlers from being installed."""
-
-    @contextlib.contextmanager
-    def run_in_thread(self):
-        port = self.port
-        ip = self.ip
-        self._logger.info(f"Starting server at {ip} on port {port}")
-        thread = threading.Thread(target=self.run)
-        thread.start()
-        try:
-            while not self.started:
-                time.sleep(1e-3)
-            yield self._controller
-        finally:
-            self.should_exit = True
-            thread.join()
+        kwargs["channel"] = MockChannel
+        kwargs["controller"] = MagicMock
+        super().__init__(**kwargs)
 
 
-def Server():
-    """Standard server."""
-    return SocketServer(controller_server=ControllerServer())
+if __name__ == "__main__":
+    component = Component(
+        transports=[
+            {
+                "type": "websocket",
+                "url": "ws://wamp.2e0byo.co.uk:3227/ws",
+            },
+        ],
+        realm="miniature-lighting-controller",
+    )
+    server = MockBackend(component=component)
+    server.run()

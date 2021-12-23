@@ -10,8 +10,8 @@ python = "^3.9"
 jsonrpclib = "^0.2.1"
 pyusb = "^1.2.1"
 coloredlogs = "^15.0.1"
-fastapi-websocket-rpc = "^0.1.21"
-fastapi = "^0.70.1"
+autobahn = {extras = ["serialization"], version = "^21.11.1"}
+wampy = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
 devtools = "^0.8.0"
