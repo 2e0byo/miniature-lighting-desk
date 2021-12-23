@@ -40,8 +40,10 @@ class ControllerServer(RpcMethodsBase):
             self.channels[channel].set_brightness(val)
             self.vals[channel] = val
             if self._pubsub_endpoint:
+                self._logger.debug(f"Publishing update.")
                 self._pubsub_endpoint.publish(
-                    dict(zip(range(len(self.channels)), self.channels))
+                    ("update"),
+                    data=dict(zip(range(len(self.channels)), self.channels)),
                 )
 
     async def get_brightness(self, *, channel: int):
@@ -78,8 +80,10 @@ class SocketServer(uvicorn.Server):
         self.endpoint = endpoint or self.DEFAULT_ENDPOINT
         self._endpoint = WebsocketRPCEndpoint(self._controller)
         self._endpoint.register_route(self._app, self.endpoint)
-        self._pubsub_endpoint = pubsub_endpoint or self.DEFAULT_PUBSUB_ENDPOINT
-        self.controller._pubsub_endpoint = self._pubsub_endpoint
+        self.pubsub_endpoint = pubsub_endpoint or self.DEFAULT_PUBSUB_ENDPOINT
+        self._pubsub_endpoint = PubSubEndpoint()
+        self._pubsub_endpoint.register_route(self._app, self.pubsub_endpoint)
+        self._controller._pubsub_endpoint = self._pubsub_endpoint
         config = uvicorn.Config(self._app, port=self.port, host="0.0.0.0")
         super().__init__(*args, **kwargs, config=config)
 
