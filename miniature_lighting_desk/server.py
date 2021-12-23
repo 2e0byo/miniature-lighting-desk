@@ -20,7 +20,7 @@ class ControllerServer(RpcMethodsBase):
     instances = []
 
     def __init__(self, channels: int = 8, channel=None, controller=None):
-        self.name = f"Server-{len(self.instances)}"
+        self.name = f"ControllerServer-{len(self.instances)}"
         self.instances.append(self.name)
         self._logger = getLogger(self.name)
 
