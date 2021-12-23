@@ -3,33 +3,36 @@ A very basic gui to let you drag some sliders around.
 
 Can you tell I'm not at all a gui programmer?
 """
+import asyncio
 import csv
-from tkinter import Tk, mainloop
+from logging import getLogger
+from tkinter import Tk
 from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.ttk import Button, Label, Scale
-from sys import argv
+from wampy.peers import Client
+from wampy.roles.subscriber import subscribe
 
-import jsonrpclib
 
-from .server import Server
+logger = getLogger(__name__)
 
-master = Tk()
-master.title("Minature Lighting Controller")
+root = Tk()
+root.title("Minature Lighting Controller")
 
 channels = []
 
-if len(argv) > 1:
-    url = f"http://localhost:{argv[1]}"
-    server = jsonrpclib.Server(url)
-    server.sync()
 
-else:
-    try:
-        server = jsonrpclib.Server(f"http://localhost:{Server.DEFAULT_PORT}")
-        server.sync()
-    except Exception:
-        s = Server()
-        server = jsonrpclib.Server(f"http://localhost:{s.port}")
+class DeskClient(Client):
+    @subscribe(topic="controller.statechange")
+    def handler(self, vals, **kwargs):
+        for channel, val in zip(channels, vals):
+            asyncio.create_task(channel.set_soon(val))
+        return True
+
+
+client = DeskClient(
+    url="ws://wamp.2e0byo.co.uk:3227/ws",
+    realm="miniature-lighting-controller",
+).__enter__()
 
 
 class ChannelSlider:
@@ -45,17 +48,38 @@ class ChannelSlider:
             length=300,
             orient="vertical",
         )
+        self.root = root
+        self.skip = False
         self.slider.grid(column=channel, row=0, padx=10)
-        self.label = Label(master, text=f"Channel {channel}")
+        self.label = Label(root, text=f"Channel {channel}")
         self.label.grid(column=channel, row=1, pady=10)
-        self.slider.set(server.get_brightness(channel))
+        self.slider.set(client.rpc.get_brightness(channel=channel))
 
     def _slider_changed(self, val):
-        server.set_brightness(self.channel, int(float(val)))
+        if self.skip:
+            self.skip = False
+            return
+        val = int(float(val))
+        self._set(val)
 
     def set(self, val):
-        server.set_brightness(self.channel, int(float(val)))
-        self.slider.set(int(float(val)))
+        val = int(float(val))
+        self._set(val)
+        self.slider.set(val)
+
+    def _set(self, val):
+        client.rpc.set_brightness(channel=self.channel, val=val)
+
+    def slider_set(self, val):
+        print("Setting slider")
+        self.skip = True
+        self.slider.set(val)
+
+    async def set_soon(self, val):
+        if self.slider.get() != val:
+            # self.slider.set(val)
+            await asyncio.sleep(0.1)
+            self.slider_set(val)
 
     def get(self):
         return self.slider.get()
@@ -97,12 +121,19 @@ def save_state():
 
 
 for i in range(8):
-    channels.append(ChannelSlider(i, master))
+    channels.append(ChannelSlider(i, root))
 
-load_button = Button(master, text="Load State", command=load_state)
+load_button = Button(root, text="Load State", command=load_state)
 load_button.grid(column=2, row=3)
 
-save_button = Button(master, text="Save State", command=save_state)
+save_button = Button(root, text="Save State", command=save_state)
 save_button.grid(column=8 - 3, row=3)
 
-mainloop()
+
+async def mainloop():
+    while True:
+        root.update()
+        await asyncio.sleep(0.01)
+
+
+asyncio.run(mainloop())
