@@ -9,6 +9,7 @@ from logging import getLogger
 import uvicorn
 from fastapi import FastAPI
 from fastapi_websocket_rpc import RpcMethodsBase, WebsocketRPCEndpoint
+from fastapi_websocket_pubsub import PubSubEndpoint
 
 from . import async_hal as hal
 
@@ -27,6 +28,7 @@ class ControllerServer(RpcMethodsBase):
         channel = channel or hal.Channel
         self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []
+        self._pubsub_endpoint: PubSubEndpoint = None
         self.sync()
 
     async def ping(self):
@@ -37,6 +39,10 @@ class ControllerServer(RpcMethodsBase):
             self._logger.debug(f"Setting channel {channel} to val {val}")
             self.channels[channel].set_brightness(val)
             self.vals[channel] = val
+            if self._pubsub_endpoint:
+                self._pubsub_endpoint.publish(
+                    dict(zip(range(len(self.channels)), self.channels))
+                )
 
     async def get_brightness(self, *, channel: int):
         self._logger.debug(f"Got {self.vals[channel]} for channel {channel}")
@@ -51,12 +57,15 @@ class SocketServer(uvicorn.Server):
 
     instances = []
     DEFAULT_PORT = 3227
+    DEFAULT_ENDPOINT = "/ws"
+    DEFAULT_PUBSUB_ENDPOINT = "/pubsub"
 
     def __init__(
         self,
         *args,
         controller_server: ControllerServer,
-        endpoint: str = "/ws",
+        endpoint: str = None,
+        pubsub_endpoint: str = None,
         **kwargs,
     ):
         self.name = f"SocketServer-{len(self.instances)}"
@@ -66,9 +75,11 @@ class SocketServer(uvicorn.Server):
         self._port = None
         self._app = FastAPI()
         self._controller = controller_server
-        self.endpoint = endpoint
+        self.endpoint = endpoint or self.DEFAULT_ENDPOINT
         self._endpoint = WebsocketRPCEndpoint(self._controller)
         self._endpoint.register_route(self._app, self.endpoint)
+        self._pubsub_endpoint = pubsub_endpoint or self.DEFAULT_PUBSUB_ENDPOINT
+        self.controller._pubsub_endpoint = self._pubsub_endpoint
         config = uvicorn.Config(self._app, port=self.port, host="0.0.0.0")
         super().__init__(*args, **kwargs, config=config)
 
