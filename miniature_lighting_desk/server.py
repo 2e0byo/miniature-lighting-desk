@@ -21,8 +21,8 @@ class MockChannel:
 class Timer:
     def __init__(self, func, delay_ms: int):
         self._func = func
-        self._delay_ms = delay_ms
-        self.remaining_ms = delay_ms * 1000
+        self._delay_ms = int(delay_ms / 100)
+        self.remaining_ms = self._delay_ms
         self.running = False
         self._started = False
 
@@ -31,21 +31,25 @@ class Timer:
         if not self._started:
             asyncio.create_task(self._loop())
 
+    async def stop(self):
+        self.running = False
+
     async def reset(self):
         self.remaining_ms = self._delay_ms
 
     async def _loop(self):
         while True:
             while self.running:
-                await asyncio.sleep(0.01)
-                self.remaining_ms -= 10
-                if self.remaining_ms <= 0:
+                await asyncio.sleep(0.1)
+                self.remaining_ms -= 1
+                if self.remaining_ms == 0:
                     await self._func()
-                    self.running = False
-                    self.remaining_ms = self._delay_ms
+                    break
+            await self.stop()
+            await self.reset()
 
             while not self.running:
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.1)
 
 
 class Backend:
@@ -72,7 +76,7 @@ class Backend:
         self.sync()
         self.component = component
         component.on_join(self.join)
-        self.timer = Timer(self.publish, 10000)
+        self.timer = Timer(self.publish, 10_000)
 
         component.register("sync")(self.sync)
         component.register("get_brightness")(self.get_brightness)
@@ -90,7 +94,7 @@ class Backend:
         return "hello"
 
     async def details(self):
-        return dict(channels=len(self.vals), name=self.name)
+        return dict(channels=len(self.vals), name=self.name, vals=self.vals)
 
     async def set_brightness(self, *, channel: int, val: int):
         if self.vals[channel] != val:
