@@ -76,7 +76,7 @@ class Backend:
         self.sync()
         self.component = component
         component.on_join(self.join)
-        self.timer = Timer(self.publish, 10_000)
+        self.timer = Timer(self.publish, 5_000)
 
         component.register("sync")(self.sync)
         component.register("get_brightness")(self.get_brightness)
