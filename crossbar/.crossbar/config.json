@@ -61,7 +61,7 @@
                                     "type": "static",
                                     "principals": {
                                         "public": {
-                                            "ticket": "${CROSSBAR_TICKET}",
+                                            "ticket": "ticket",
                                             "role": "frontend"
                                         }
                                     }
