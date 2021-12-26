@@ -1,0 +1,8 @@
+[Unit]
+Description=Crossbar Wamp Server
+
+[Service]
+ExecStart=/root/miniature-lighting-desk/crossbar/run_crossbar.sh
+
+[Install]
+WantedBy=network-online.target
