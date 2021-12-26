@@ -30,7 +30,7 @@ class DeskClient(Client):
 
 
 client = DeskClient(
-    url="ws://wamp.2e0byo.co.uk:3227/ws",
+    url="wss://wamp.2e0byo.co.uk:3227/ws",
     realm="miniature-lighting-controller",
 ).__enter__()
 

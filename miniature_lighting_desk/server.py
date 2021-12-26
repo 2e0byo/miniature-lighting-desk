@@ -129,11 +129,22 @@ class MockBackend(Backend):
 
 
 if __name__ == "__main__":
+    import ssl
+
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
     component = Component(
         transports=[
             {
                 "type": "websocket",
-                "url": "ws://wamp.2e0byo.co.uk:3227/ws",
+                "url": "wss://wamp.2e0byo.co.uk:3227/ws",
+                "endpoint": {
+                    "type": "tcp",
+                    "host": "wamp.2e0byo.co.uk",
+                    "port": 3227,
+                    "tls": context,
+                },
             },
         ],
         realm="miniature-lighting-controller",
