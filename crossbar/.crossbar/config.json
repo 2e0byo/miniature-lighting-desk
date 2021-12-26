@@ -9,7 +9,7 @@
                     "name": "miniature-lighting-controller",
                     "roles": [
                         {
-                            "name": "anonymous",
+                            "name": "frontend",
                             "permissions": [
                                 {
                                     "uri": "",
@@ -55,7 +55,18 @@
                             "type": "nodeinfo"
                         },
                         "ws": {
-                            "type": "websocket"
+                            "type": "websocket",
+                            "auth": {
+                                "ticket": {
+                                    "type": "static",
+                                    "principals": {
+                                        "client1": {
+                                            "ticket": "${CROSSBAR_TICKET}",
+                                            "role": "frontend"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
