@@ -2,7 +2,7 @@
 Description=Crossbar Wamp Server
 
 [Service]
-ExecStart=cd /root/miniature-lighting-desk/crossbar && ./run_crossbar.sh
+ExecStart=/root/miniature-lighting-desk/crossbar/run_crossbar.sh
 
 [Install]
 WantedBy=network-online.target
