@@ -1,0 +1,65 @@
+{
+    "version": 2,
+    "controller": {},
+    "workers": [
+        {
+            "type": "router",
+            "realms": [
+                {
+                    "name": "miniature-lighting-controller",
+                    "roles": [
+                        {
+                            "name": "anonymous",
+                            "permissions": [
+                                {
+                                    "uri": "",
+                                    "match": "prefix",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": true,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "transports": [
+                {
+                    "type": "web",
+                    "endpoint": {
+                        "type": "tcp",
+                        "port": 3227,
+                        "tls": {
+                            "key": "/etc/letsencrypt/live/wamp.2e0byo.co.uk/privkey.pem",
+                            "certificate": "/etc/letsencrypt/live/wamp.2e0byo.co.uk/cert.pem",
+                            "dhparam": "/etc/letsencrypt/live/wamp.2e0byo.co.uk/dhparam.pem"
+                        }
+                    },
+                    "paths": {
+                        "/": {
+                            "type": "static",
+                            "directory": "../web",
+                            "options": {
+                                "enable_directory_listing": true
+                            }
+                        },
+                        "info": {
+                            "type": "nodeinfo"
+                        },
+                        "ws": {
+                            "type": "websocket"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
