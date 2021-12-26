@@ -60,7 +60,7 @@
                                 "ticket": {
                                     "type": "static",
                                     "principals": {
-                                        "client1": {
+                                        "public": {
                                             "ticket": "${CROSSBAR_TICKET}",
                                             "role": "frontend"
                                         }
