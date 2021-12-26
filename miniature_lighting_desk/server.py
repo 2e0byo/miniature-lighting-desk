@@ -128,8 +128,19 @@ class MockBackend(Backend):
         super().__init__(**kwargs)
 
 
-if __name__ == "__main__":
+def main():
     import ssl
+    import os
+    from getpass import getpass
+
+    from sys import argv
+
+    if "TICKET" in os.environ:
+        TICKET = os.environ["TICKET"]
+    elif len(argv) > 1:
+        TICKET = argv[1].strip()
+    else:
+        TICKET = getpass("Enter Password: ")
 
     context = ssl.create_default_context()
     context.check_hostname = False
@@ -148,6 +159,16 @@ if __name__ == "__main__":
             },
         ],
         realm="miniature-lighting-controller",
+        authentication={
+            "ticket": {
+                "authid": "public",
+                "ticket": TICKET,
+            },
+        },
     )
     server = MockBackend(component=component)
     server.run()
+
+
+if __name__ == "__main__":
+    main()
