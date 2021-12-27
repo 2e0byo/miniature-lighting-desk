@@ -57,7 +57,7 @@ class App:
         save_button = Button(self.root, text="Save State", command=self.save_state)
         save_button.grid(column=8 - 3, row=3)
 
-    def __cal__(self):
+    def __call__(self):
         self.root.mainloop()
 
     def load_state(self):
