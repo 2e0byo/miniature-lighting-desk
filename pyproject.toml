@@ -14,6 +14,9 @@ autobahn = {extras = ["serialization"], version = "^21.11.1"}
 wampy = "^1.1.0"
 click = "^8.0.3"
 
+[tool.poetry.scripts]
+lighting_desk = "miniature_lighting_desk.cli:cli"
+
 [tool.poetry.dev-dependencies]
 devtools = "^0.8.0"
 mkdocs = "^1.2.3"
