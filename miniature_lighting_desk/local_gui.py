@@ -8,7 +8,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.ttk import Button, Label, Scale
 
-import async_hal as hal
+from . import async_hal as hal
 
 
 class ChannelSlider:
