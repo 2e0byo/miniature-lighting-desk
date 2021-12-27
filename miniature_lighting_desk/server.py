@@ -159,6 +159,8 @@ def main(mock, password):
         server = MockBackend(component=component)
     else:
         server = Backend(component=component)
+
+    print("\n Starting Backend\n Press Ctrl-c to exit\n")
     server.run()
 
 
