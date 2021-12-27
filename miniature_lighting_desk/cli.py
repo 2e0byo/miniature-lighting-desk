@@ -6,6 +6,7 @@ from getpass import getpass
 
 
 @click.group()
+@click.version_option()
 def cli():
     pass
 
