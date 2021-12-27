@@ -128,19 +128,8 @@ class MockBackend(Backend):
         super().__init__(**kwargs)
 
 
-def main():
+def main(mock, password):
     import ssl
-    import os
-    from getpass import getpass
-
-    from sys import argv
-
-    if "TICKET" in os.environ:
-        TICKET = os.environ["TICKET"]
-    elif len(argv) > 1:
-        TICKET = argv[1].strip()
-    else:
-        TICKET = getpass("Enter Password: ")
 
     context = ssl.create_default_context()
     context.check_hostname = False
@@ -162,11 +151,14 @@ def main():
         authentication={
             "ticket": {
                 "authid": "public",
-                "ticket": TICKET,
+                "ticket": password,
             },
         },
     )
-    server = MockBackend(component=component)
+    if mock:
+        server = MockBackend(component=component)
+    else:
+        server = Backend(component=component)
     server.run()
 
 

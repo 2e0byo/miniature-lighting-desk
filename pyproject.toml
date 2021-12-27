@@ -12,6 +12,7 @@ pyusb = "^1.2.1"
 coloredlogs = "^15.0.1"
 autobahn = {extras = ["serialization"], version = "^21.11.1"}
 wampy = "^1.1.0"
+click = "^8.0.3"
 
 [tool.poetry.dev-dependencies]
 devtools = "^0.8.0"
