@@ -19,22 +19,30 @@ frontend clients.  This server can handle multiple connections, locally and over
 a network.  Network and local frontends are supplied (although the local
 frontend is now deprecated, and no further development will be done.**
 
-## The Server
+## The backend
 
 runs on a computer connected to the controller.  This computer does not need to
 be a standard 'computer': it could be a Raspberry Pi, a wireless router (running
 something like `openwrt`), anything.  The only requirement is that it can run
 the server, i.e. it needs a recent python and a network connection.
 
-## The Local Frontend
+## The local frontend
 
 is identical to the previous software. It is provided for familiarity. No
 further development will be done on it, as the web frontend is also useable
-locally.
+locally.  Once `miniature-lighting-desk` is installed you can run it directly:
 
-## The Web Frontend
+```bash
+lighting_desk local
+```
 
-is written in `Node.js` and looks a great deal better than the old frontend.
+Note that only one of the backend or the local frontend can control the
+controller at any one time.  The local frontend is provided only as a backup,
+particularly as it needs no internet connection to work.
+
+## The web frontend
+
+is written in `Vue.js` and looks a great deal better than the old frontend.
 Functionality can be added to it very easily without affecting the backend
 server.
 
