@@ -5,7 +5,9 @@ repo_url: "https://github.com/2e0byo/miniature-lighting-desk"
 repo_name: "2e0byo/miniature-lighting-desk"
 site_dir: "site"
 
+
 nav:
+- Quickstart: index.md
 - Home:
   - Overview: overview.md
   - Installation: installation.md
