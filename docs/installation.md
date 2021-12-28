@@ -1,4 +1,4 @@
-## The server
+## The backend
 
 is deployed on `pypi`. To install it you need a recent python (>=3.9) installed,
 and then you can run in a terminal:
@@ -7,7 +7,8 @@ and then you can run in a terminal:
 python3 -m pip install miniature-lighting-desk
 ```
 
-or, if you prefer to pipx:
+or, if you prefer to use pipx (note that it will not be possible to use the
+scripting interface if you install with pipx):
 
 ```bash
 pipx install miniature-lighting-desk
@@ -17,26 +18,38 @@ When the server is installed, it needs to be started. You run it in a terminal
 with:
 
 ```bash
-miniature-lighting-desk-server
+lighting_desk server
 ```
 
-It will find an available port and set up network and local access.
 
 ## The local frontend
 
 is installed with the server.  You run it with:
 
 ```bash
-miniature-lighting-desk
+lighting_desk local-gui
 ```
 
-It will start the server if it is not already running.
+## Server development
 
-## The web frontend
+Clone this repository, and then run
 
-need not be installed. It is developed separately from this server, and is
-available online at https://github.io/2e0byo/lighting-desk. You will need to
-entry the ip (or hostname, if your network resolves hostnames) of the computer
-running the server, and the port the server is running on. This information is
-printed in the terminal when the server is started. Note that the desk runs
-*locally*: no information leaves your local network.
+```bash
+poetry install
+poetry shell
+```
+
+## Frontend development
+
+Clone [2e0byo/lighting-desk](https://github.com/2e0byo/lighting-desk) and then run
+
+```bash
+cd lighting-desk
+yarn install
+yarn serve
+```
+
+## Contributing
+
+Open a Pull Request.
+
