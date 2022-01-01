@@ -24,7 +24,7 @@ do with time, and is likewise built in.
 
 `async_hal` is a library I wrote, distributed with the demo.  It’s
 called *async* hal as I first wrote a *synchronous* hal, but then
-abandoned it as the async one is much better.  (It send the usb
+abandoned it as the async one is much better.  (It sends the usb
 requests in the background.) A hal is a Hardware Abstraction Layer,
 i.e. something which does the hard work of talking to the hardware.
 

@@ -6,7 +6,7 @@ things:
 Note that the voltage regulator is not shown: this is a module, bought from
 Amazon or Ebay ages ago, and is switch-mode (so it shouldn’t get too hot). I
 have no idea of its specifications, but the worst case scenario&#x2014;300mA on
-each channel, or \(8\times300 = 2.4A\) is probably pushing it.
+each channel, or 8x300 = 2.4A is probably pushing it.
 
 The core of the hardware is a PIC18f4550 microcontroller, a small one-chip
 computer running at 12MHz (compare that to your laptop, running probably at
