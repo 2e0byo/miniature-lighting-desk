@@ -20,8 +20,7 @@ jobs:
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
-
-      - run: |
+        run: |
           poetry run mkdocs build
 
       - name: Deploy
