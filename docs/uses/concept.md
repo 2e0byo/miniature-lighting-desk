@@ -1,31 +1,26 @@
-This is a lighting controller, exactly like lighting controllers in a
-theatre.  It has eight channels, numbered 0-7 (since I am a lazy
-programmer, and computers start counting at 0).  These can be set
-between off (0) and full on (256---no, that’s not a typo, see
-[4](#orgc780223) to find out why).  At 0 the corresponding pair of
-output terminals has no voltage accross it.  At 256 it has the voltage
-displayed on the little display accross it.  This voltage can be
-adjusted by turning the knob, but it applies to all channels (so you
-can only really control lamps or outputs which want the same voltage
-accross them, although see [3.2.1](#org0329802) below.)
+I imagined this functioning rather like a standard lighting
+controller, only for stopmotion sets, controlling one or two lights,
+as you did with batteries in Fydor.  However it could handle more: for
+instance, a set of chritmas lights could be fashioned into
+streetlamps, and turn on fitfully, like real lamps lighting up, by
+scripting a ‘turn on’ program.  If you weren’t shooting in realtime
+but could control the camera from the computer, each step in the
+fitful turn-on could happen a few milliseconds before the shot is
+taken, saving you from setting the manually (although I imagine this
+kind of thing would probably be filmed in realtime).
 
-You can drive standard filament lamps&#x2014;the kind you’ve used
-before&#x2014;directly.  You can also drive some LEDs directly, and others
-with an appropriate current limiting resistor (see [3.1.1](#org26e2c7d) below).  You
-could also theoretically drive any other resistive sink, or indeed an
-inductive sink like a motor, as protection diodes are fitted.
+Likewise, it could be used just as something to play with: for several
+days it faded a string of lights on and off in a sinusoidal pattern in
+the living room.  If you want, it would be possible to add the ability
+to store patterns (of a limitied duration).
 
-The controller (the hardware) is controlled over USB, by a computer
-running software.  It ships with two demo programs: a graphical
-program consisting of eight sliders which can be used to control the
-channels, exactly like a ‘real’ theatre controller, together with the
-ability to load and save states, for use as presets, and a
-demonstration of scripting the controller, which is discussed in the
-section [5](#orge444fa1).
+It could also be used for more exotic setups: one could attach a relay
+controlling a mains light to a channel, although one could only turn
+it on and off (and care must be taken when dealing with mains
+electricity!).  It could drive some kinds of motors with speed
+control.  It could drive small heating elements, though what you’d
+want small heating elements for I don’t know.
 
-The controller is powered by an external SMPSU, which sometimes gets a
-little warm in operation, but which is capable of running for extended
-periods wtihout overheating.  The SMPSU can supply up to 30v, but is
-set to supply 15v at the moment, which is probably all you want to
-handle.  Each channel can provide around 300mA, which should be enough
-for all realistic uses.
+Lastly, if you get bored, learning to program it is a fair
+introduction to coding in Python, an easy and very versatile language
+which is used everywhere.
