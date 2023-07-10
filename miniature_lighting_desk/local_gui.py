@@ -14,11 +14,11 @@ from . import async_hal as hal
 class ChannelSlider:
     """Channel Slider."""
 
-    def __init__(self, controller, channel, root):
+    def __init__(self, controller: hal.ControllerABC, channel, root):
         self.channel = hal.Channel(controller, channel)
         self.slider = Scale(
             root,
-            from_=256,
+            from_=controller.max_brightness,
             to=0,
             command=self._slider_changed,
             length=300,

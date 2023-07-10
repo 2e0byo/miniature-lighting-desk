@@ -20,6 +20,7 @@ class ControllerABC(ABC):
     """
 
     no_channels: int
+    max_brightness: int
 
     def __init__(self, *args, **kwargs) -> None:
         self._start_async()
@@ -97,6 +98,7 @@ class MockController(ControllerABC):
     def __init__(self, *args, no_channels=8, **kwargs):
         self.no_channels = no_channels
         self.vals = [0] * no_channels
+        self.max_brightness = 100
         super().__init__(*args, **kwargs)
 
     async def _async_set_brightness(
