@@ -84,7 +84,12 @@ class Backend:
         return "hello"
 
     async def details(self):
-        return dict(channels=len(self.vals), name=self.name, vals=self.vals)
+        return dict(
+            channels=len(self.vals),
+            name=self.name,
+            vals=self.vals,
+            max_brightness=self.controller.max_brightness,
+        )
 
     async def set_brightness(self, *, channel: int, val: int):
         if self.vals[channel] != val:
