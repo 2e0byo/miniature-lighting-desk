@@ -54,10 +54,14 @@ class ControllerABC(ABC):
         """Stop background asyncio loop."""
         self.loop.call_soon_threadsafe(self.loop.stop)
 
-    def submit_async(self, awaitable):
+    def submit_async(self, awaitable, block=False):
         """Submit an awaitable to the background asyncio loop, returning a future for
         it."""
-        return asyncio.run_coroutine_threadsafe(awaitable(), self.loop)
+        future = asyncio.run_coroutine_threadsafe(awaitable(), self.loop)
+        if block:
+            while not future.done():
+                sleep(0.000_1)
+        return future
 
     async def async_fade_brightness(
         self, channel: int, start: int, end: int, fade_time_s: float
@@ -88,9 +92,9 @@ class ControllerABC(ABC):
 
     def get_brightness(self, channel, pause=0):
         """Queue getting brightness."""
-        future = self.submit_async(partial(self._async_get_brightness, channel))
-        while not future.done():
-            sleep(0.0001)  # wait in case we queue
+        future = self.submit_async(
+            partial(self._async_get_brightness, channel), block=True
+        )
         return self.unscale_brightness(future.result())
 
 
