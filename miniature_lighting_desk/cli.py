@@ -23,8 +23,10 @@ class Controller(str, Enum):
 @app.command(help="Run local gui.")
 def local_gui(
     controller: _Controller = _Controller.pinguino,
+    port: str = "",
 ):
-    controller = controllers[controller.value]()
+    kwargs = {"port": port} if port else {}
+    controller = controllers[controller.value](**kwargs)
     gui(controller)
 
 
@@ -32,9 +34,11 @@ def local_gui(
 def backend(
     controller: _Controller = _Controller.pinguino,
     password: str = "",
+    port: str = "",
 ):
     password = password or os.getenv("PASSWORD") or getpass("Enter Password: ")
-    controller = controllers[controller.value]()
+    kwargs = {"port": port} if port else {}
+    controller = controllers[controller.value](**kwargs)
     server.main(password, controller)
 
 
