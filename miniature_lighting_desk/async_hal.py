@@ -120,7 +120,7 @@ class MockController(ControllerABC):
 
 
 class PinguinoController(ControllerABC):
-    def __init__(self, timeout=100):
+    def __init__(self, *args, timeout=100, **kwargs):
         VENDOR = 0x04D8
         PRODUCT = 0xFEAA
         CONFIGURATION = 0x01
