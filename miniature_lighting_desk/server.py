@@ -51,7 +51,6 @@ class Backend:
         *,
         component: Component,
         controller: hal.ControllerABC,
-        channels: int = 8,
         channel=None,
     ):
         self.name = f"ControllerServer-{len(self.instances)}"
@@ -60,7 +59,9 @@ class Backend:
 
         self.controller = controller
         channel = channel or hal.Channel
-        self.channels = [channel(self.controller, i) for i in range(channels)]
+        self.channels = [
+            channel(self.controller, i) for i in range(controller.no_channels)
+        ]
         self.vals = []
         self.sync()
         self.component = component
