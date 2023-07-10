@@ -21,6 +21,9 @@ class ControllerABC(ABC):
 
     no_channels: int
 
+    def __init__(self, *args, **kwargs) -> None:
+        self._start_async()
+
     @abstractmethod
     async def _async_set_brightness(
         self, channel: int, brightness: int, pause: float = 0
@@ -90,12 +93,31 @@ class ControllerABC(ABC):
         return self.unscale_brightness(future.result())
 
 
+class MockController(ControllerABC):
+    def __init__(self, *args, no_channels=8, **kwargs):
+        self.no_channels = no_channels
+        self.vals = [0] * no_channels
+        super().__init__(*args, **kwargs)
+
+    async def _async_set_brightness(
+        self, channel: int, brightness: int, pause: float = 0
+    ) -> None:
+        self.vals[channel] = brightness
+        print(f"Setting channel {channel} to {brightness}")
+        await asyncio.sleep(pause)
+
+    async def _async_get_brightness(self, channel: int) -> int:
+        print(f"Getting brightness for channel {channel}")
+        return self.vals[channel]
+
+    scale_brightness = unscale_brightness = lambda s, x: x
+
+
 class PinguinoController(ControllerABC):
     def __init__(self, timeout=100):
         VENDOR = 0x04D8
         PRODUCT = 0xFEAA
         CONFIGURATION = 0x01
-        self._start_async()
         # find pinguino
         pinguino = None
         for bus in usb.busses():
@@ -111,6 +133,7 @@ class PinguinoController(ControllerABC):
         self.timeout = timeout
         self.max_brightness = 256
         self.no_channels = 8
+        super().__init__(*args, **kwargs)
 
     def _read(self, length):
         ENDPOINT_IN = 0x81
@@ -160,7 +183,7 @@ class Channel:
 
     def __init__(
         self,
-        controller: PinguinoController,
+        controller: ControllerABC,
         channel_number,
         on_brightness=256,
         off_brightness=0,
@@ -230,6 +253,12 @@ class Channel:
         """Cancel ongoing fade and then query controller for actual channel value."""
         self.fade_future.cancel()
         self._query()
+
+
+controllers = {
+    "pinguino": PinguinoController,
+    "mock": MockController,
+}
 
 
 if __name__ == "__main__":

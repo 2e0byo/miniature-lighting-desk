@@ -1,32 +1,42 @@
 import os
+from enum import Enum
 from getpass import getpass
+from typing import Literal
 
-import click
+import typer
 
 from . import server
+from .async_hal import controllers
 from .local_gui import main as gui
 
+app = typer.Typer()
 
-@click.group()
-@click.version_option()
-def cli():
-    pass
+# Typer provides proper hinting like this
+_Controller = Enum("_Controller", {k: k for k in controllers.keys()})
 
 
-@cli.command()
-def local_gui(controller: str = "PinguinoController"):
+class Controller(str, Enum):
+    pinguino = "PinguinoController"
+    mock = "MockController"
+
+
+@app.command(help="Run local gui.")
+def local_gui(
+    controller: _Controller = _Controller.pinguino,
+):
+    controller = controllers[controller.value]()
     gui(controller)
 
 
-@cli.command()
-@click.option("--mock", is_flag=True, help="Use mocked hardware.")
-@click.option(
-    "--password", help="Password.  If not supplied will be read from env or prompted."
-)
-def backend(mock, password):
+@app.command(help="Run backend for web gui.")
+def backend(
+    controller: _Controller = _Controller.pinguino,
+    password: str = "",
+):
     password = password or os.getenv("PASSWORD") or getpass("Enter Password: ")
-    server.main(mock, password)
+    controller = controllers[controller.value]()
+    server.main(password, controller)
 
 
 if __name__ == "__main__":
-    cli()
+    app()

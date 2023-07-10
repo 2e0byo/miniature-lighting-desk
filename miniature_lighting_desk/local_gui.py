@@ -92,7 +92,6 @@ class App:
             print(f"Error: {e}")
 
 
-def main(controller_name: str):
-    controller = getattr(hal, controller_name)()
+def main(controller: hal.ControllerABC):
     app = App(channels=controller.no_channels, controller=controller)
     app()

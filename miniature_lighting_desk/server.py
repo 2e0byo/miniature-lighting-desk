@@ -7,17 +7,6 @@ from autobahn.asyncio.component import Component, run
 from . import async_hal as hal
 
 
-class MockChannel:
-    def __init__(self, *args):
-        self.val = 0
-
-    def get_brightness(self):
-        return self.val
-
-    def set_brightness(self, val):
-        self.val = max(0, min(255, val))
-
-
 class Timer:
     def __init__(self, func, delay_ms: int):
         self._func = func
@@ -61,15 +50,15 @@ class Backend:
         self,
         *,
         component: Component,
+        controller: hal.ControllerABC,
         channels: int = 8,
         channel=None,
-        controller=None,
     ):
         self.name = f"ControllerServer-{len(self.instances)}"
         self.instances.append(self.name)
         self._logger = getLogger(self.name)
 
-        self.controller = controller() if controller else hal.PinguinoController()
+        self.controller = controller
         channel = channel or hal.Channel
         self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []
@@ -105,7 +94,7 @@ class Backend:
             self.vals[channel] = val
 
     async def publish(self):
-        self._logger.info("Publishing satechange")
+        self._logger.info("Publishing statechange")
         self.session.publish("controller.statechange", self.vals)
 
     async def get_brightness(self, *, channel: int):
@@ -116,19 +105,19 @@ class Backend:
         self.vals = [channel.get_brightness() for channel in self.channels]
 
 
-class MockBackend(Backend):
-    """A backend with the hardware mocked away."""
+# class MockBackend(Backend):
+#     """A backend with the hardware mocked away."""
 
-    def __init__(
-        self,
-        **kwargs,
-    ):
-        kwargs["channel"] = MockChannel
-        kwargs["controller"] = MagicMock
-        super().__init__(**kwargs)
+#     def __init__(
+#         self,
+#         **kwargs,
+#     ):
+#         kwargs["channel"] = MockChannel
+#         kwargs["controller"] = MagicMock
+#         super().__init__(**kwargs)
 
 
-def main(mock, password):
+def main(password, controller):
     import ssl
 
     context = ssl.create_default_context()
@@ -155,14 +144,7 @@ def main(mock, password):
             },
         },
     )
-    if mock:
-        server = MockBackend(component=component)
-    else:
-        server = Backend(component=component)
+    server = Backend(controller=controller, component=component)
 
     print("\n Starting Backend\n Press Ctrl-c to exit\n")
     server.run()
-
-
-if __name__ == "__main__":
-    main()

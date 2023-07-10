@@ -12,9 +12,11 @@ coloredlogs = "^15.0.1"
 autobahn = {extras = ["serialization"], version = "^23.6.2"}
 click = "^8.0.3"
 mkdocstrings = "^0.17.0"
+typer = "^0.9.0"
+rich = "^13.4.2"
 
 [tool.poetry.scripts]
-lighting_desk = "miniature_lighting_desk.cli:cli"
+lighting_desk = "miniature_lighting_desk.cli:app"
 
 [tool.poetry.dev-dependencies]
 devtools = "^0.8.0"
