@@ -6,6 +6,8 @@ from threading import Thread
 from time import sleep
 
 import usb
+from aioserial import AioSerial
+from jsonrpcclient import parse, parse_json, request_json
 
 
 class ControllerError(Exception):
@@ -184,6 +186,36 @@ class PinguinoController(ControllerABC):
         return self.max_brightness - scaled
 
 
+class SerialRpcController(ControllerABC):
+    def __init__(self, *args, port="/dev/ttyUSB0", **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.serial = AioSerial(port=port, baudrate=460800)
+        self.lock = asyncio.Lock()
+        future = self.submit_async(partial(self.call, "channel_count"), block=True)
+        self.no_channels = future.result()
+        future = self.submit_async(partial(self.call, "max_brightness"), block=True)
+        self.max_brightness = future.result()
+
+    async def call(self, method: str, **kwargs):
+        async with self.lock:  # dunno, might be needed...
+            cmd = request_json(method, params=kwargs).encode()
+            await self.serial.write_async(cmd)
+            await self.serial.write_async(b"\n\r")
+            resp = await self.serial.readline_async()
+            data = parse_json(resp.decode())
+            return data.result
+
+    async def _async_get_brightness(self, channel: int) -> int:
+        return await self.call("get_brightness", channel=channel)
+
+    async def _async_set_brightness(
+        self, channel: int, brightness: int, pause: float = 0
+    ) -> None:
+        return await self.call("set_brightness", channel=channel, brightness=brightness)
+
+    scale_brightness = unscale_brightness = lambda s, x: x
+
+
 class Channel:
     """Class to represent a particular channel on the controller."""
 
@@ -264,6 +296,7 @@ class Channel:
 controllers = {
     "pinguino": PinguinoController,
     "mock": MockController,
+    "16chan": SerialRpcController,
 }
 
 
