@@ -69,7 +69,7 @@ class Backend:
         self.instances.append(self.name)
         self._logger = getLogger(self.name)
 
-        self.controller = controller() if controller else hal.Controller()
+        self.controller = controller() if controller else hal.PinguinoController()
         channel = channel or hal.Channel
         self.channels = [channel(self.controller, i) for i in range(channels)]
         self.vals = []

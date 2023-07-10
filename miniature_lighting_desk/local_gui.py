@@ -41,14 +41,14 @@ class ChannelSlider:
 
 
 class App:
-    def __init__(self):
+    def __init__(self, channels: int, controller: hal.ControllerABC):
         self.root = Tk()
         self.root.title("Miniature Lighting Controller")
 
-        self.lighting_controller = hal.Controller()
+        self.lighting_controller = controller
         self.channels = []
 
-        for i in range(8):
+        for i in range(channels):
             self.channels.append(ChannelSlider(self.lighting_controller, i, self.root))
 
         load_button = Button(self.root, text="Load State", command=self.load_state)
@@ -92,6 +92,7 @@ class App:
             print(f"Error: {e}")
 
 
-def main():
-    app = App()
+def main(controller_name: str):
+    controller = getattr(hal, controller_name)()
+    app = App(channels=controller.no_channels, controller=controller)
     app()

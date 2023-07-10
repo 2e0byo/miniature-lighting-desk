@@ -1,4 +1,5 @@
 import asyncio
+from abc import ABC, abstractmethod
 from functools import partial
 from re import search
 from threading import Thread
@@ -11,13 +12,85 @@ class ControllerError(Exception):
     """Controller failed to respond correctly after retries."""
 
 
-class Controller:
+class ControllerABC(ABC):
     """
     (Semi) Asynchronous class to represent a controller.
 
     Note that we do block, we just await between writes.
     """
 
+    no_channels: int
+
+    @abstractmethod
+    async def _async_set_brightness(
+        self, channel: int, brightness: int, pause: float = 0
+    ) -> None:
+        """Set brightness."""
+
+    @abstractmethod
+    async def _async_get_brightness(self, channel: int) -> int:
+        """Get brightness."""
+
+    @abstractmethod
+    def scale_brightness(self, unscaled: int) -> int:
+        """Scale brightness from controller to real world."""
+
+    @abstractmethod
+    def unscale_brightness(self, scaled: int) -> int:
+        """Scale brightness from real world to controller."""
+
+    def _start_async(self):
+        """Start an asyncio loop in the background."""
+        self.loop = asyncio.new_event_loop()
+        t = Thread(target=self.loop.run_forever)
+        t.daemon = True
+        t.start()
+
+    def stop_async(self):
+        """Stop background asyncio loop."""
+        self.loop.call_soon_threadsafe(self.loop.stop)
+
+    def submit_async(self, awaitable):
+        """Submit an awaitable to the background asyncio loop, returning a future for
+        it."""
+        return asyncio.run_coroutine_threadsafe(awaitable(), self.loop)
+
+    async def async_fade_brightness(
+        self, channel: int, start: int, end: int, fade_time_s: float
+    ) -> None:
+        steps = abs(end - start)
+        pause = fade_time_s / steps
+        if end > start:
+            steps = range(start, end + 1)
+        else:
+            steps = range(start, end - 1, -1)
+        for step in steps:
+            await self._async_set_brightness(
+                channel, self.scale_brightness(step), pause
+            )
+
+    def fade_brightness(self, channel, start, end, fade_time):
+        """Queue fading control."""
+        return self.submit_async(
+            partial(self.async_fade_brightness, channel, start, end, fade_time)
+        )
+
+    def set_brightness(self, channel: int, brightness: int, pause: float = 0):
+        """Queue setting brightness."""
+        brightness = self.scale_brightness(brightness)
+        return self.submit_async(
+            partial(self._async_set_brightness, channel, brightness, pause)
+        )
+
+    def get_brightness(self, channel, pause=0):
+        """Queue getting brightness."""
+        future = self.submit_async(partial(self._async_get_brightness, channel))
+        while not future.done():
+            sleep(0.0001)  # wait in case we queue
+        return self.unscale_brightness(future.result())
+
+
+class PinguinoController(ControllerABC):
     def __init__(self, timeout=100):
         VENDOR = 0x04D8
         PRODUCT = 0xFEAA
@@ -36,22 +109,8 @@ class Controller:
         self.dh.claimInterface(0)
         self.retries = 2
         self.timeout = timeout
-
-    def _start_async(self):
-        """Start an asyncio loop in the background."""
-        self.loop = asyncio.new_event_loop()
-        t = Thread(target=self.loop.run_forever)
-        t.daemon = True
-        t.start()
-
-    def stop_async(self):
-        """Stop background asyncio loop."""
-        self.loop.call_soon_threadsafe(self.loop.stop)
-
-    def submit_async(self, awaitable):
-        """Submit an awaitable to the background asyncio loop, returning a future for
-        it."""
-        return asyncio.run_coroutine_threadsafe(awaitable(), self.loop)
+        self.max_brightness = 256
+        self.no_channels = 8
 
     def _read(self, length):
         ENDPOINT_IN = 0x81
@@ -63,62 +122,37 @@ class Controller:
         return self.dh.bulkWrite(ENDPOINT_OUT, buf.encode(), self.timeout)
 
     def send(self, msg: str):
-        for i in range(self.retries):
+        for _ in range(self.retries):
             self._write(msg)
             ret = self._read(64)
             if "Error" not in ret:
                 return ret
         raise ControllerError(ret)
 
-    async def __await__set_brightness(self, channel, brightness, pause=0):
+    async def _async_set_brightness(self, channel, brightness, pause=0):
         msg = f"s{channel}{brightness:03d}"
         ret = self.send(msg)
         await asyncio.sleep(pause)
         return ret
 
-    async def __await__get_brightness(self, channel):
+    async def _async_get_brightness(self, channel):
         msg = f"g{channel:01d}"
         ret = self.send(msg)
         await asyncio.sleep(0)
-        return ret
-
-    async def __await__fade_brightness(self, channel, start, end, fade_time):
-        steps = abs(end - start)
-        pause = fade_time / steps
-        if end > start:
-            steps = range(start, end + 1)
-        else:
-            steps = range(start, end - 1, -1)
-        for step in steps:
-            await self.__await__set_brightness(channel, 256 - step, pause)
-            start = 256 - step
-
-    def fade_brightness(self, channel, start, end, fade_time):
-        """Queue fading control."""
-        return self.submit_async(
-            partial(self.__await__fade_brightness, channel, start, end, fade_time)
-        )
-
-    def set_brightness(self, channel, brightness, pause=0):
-        """Queue setting brightness."""
-        brightness = 256 - brightness
-        return self.submit_async(
-            partial(self.__await__set_brightness, channel, brightness, pause)
-        )
-
-    def get_brightness(self, channel, pause=0):
-        """Queue getting brightness."""
-        future = self.submit_async(partial(self.__await__get_brightness, channel))
-        while not future.done():
-            sleep(0.0001)  # wait in case we queue
-        match = search(r"Channel ([0-9]) is ([0-9]+)", future.result())
+        match = search(r"Channel ([0-9]) is ([0-9]+)", ret)
         if not match:
-            raise ControllerError(f"Garbage returned: {future.result()}")
+            raise ControllerError(f"Garbage returned: {ret}")
         chan, brightness = match.groups()
         if int(chan) == channel:
-            return 256 - int(brightness)
+            return int(brightness)
         else:
             raise ControllerError("Wrong channel returned!")
+
+    def scale_brightness(self, unscaled: int) -> int:
+        return self.max_brightness - unscaled
+
+    def unscale_brightness(self, scaled: int) -> int:
+        return self.max_brightness - scaled
 
 
 class Channel:
@@ -126,7 +160,7 @@ class Channel:
 
     def __init__(
         self,
-        controller: Controller,
+        controller: PinguinoController,
         channel_number,
         on_brightness=256,
         off_brightness=0,
@@ -200,6 +234,6 @@ class Channel:
 
 if __name__ == "__main__":
     # for testing or example
-    cont = Controller()
+    cont = PinguinoController()
     green = Channel(cont, 7)
     red = Channel(cont, 0)

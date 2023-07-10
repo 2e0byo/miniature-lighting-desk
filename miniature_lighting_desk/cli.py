@@ -1,8 +1,10 @@
-from . import server
-from .local_gui import main as gui
-import click
 import os
 from getpass import getpass
+
+import click
+
+from . import server
+from .local_gui import main as gui
 
 
 @click.group()
@@ -12,8 +14,8 @@ def cli():
 
 
 @cli.command()
-def local_gui():
-    gui()
+def local_gui(controller: str = "PinguinoController"):
+    gui(controller)
 
 
 @cli.command()
