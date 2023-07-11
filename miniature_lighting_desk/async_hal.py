@@ -100,6 +100,16 @@ class ControllerABC(ABC):
         return self.unscale_brightness(future.result())
 
 
+class WifiControllerABC(ControllerABC):
+    @abstractmethod
+    def wifi(self, ssid: str, password: str) -> dict:
+        """Connect controller to wifi network."""
+
+    @abstractmethod
+    def wifi_status(self) -> dict:
+        """Get controller wifi status."""
+
+
 class MockController(ControllerABC):
     def __init__(self, *args, no_channels=8, **kwargs):
         self.no_channels = no_channels
@@ -186,15 +196,17 @@ class PinguinoController(ControllerABC):
         return self.max_brightness - scaled
 
 
-class SerialRpcController(ControllerABC):
+class SerialRpcController(WifiControllerABC):
     def __init__(self, *args, port="/dev/ttyUSB0", **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.serial = AioSerial(port=port, baudrate=460800)
         self.lock = asyncio.Lock()
-        future = self.submit_async(partial(self.call, "channel_count"), block=True)
-        self.no_channels = future.result()
-        future = self.submit_async(partial(self.call, "max_brightness"), block=True)
-        self.max_brightness = future.result()
+        self.no_channels = self.sync_call("channel_count")
+        self.max_brightness = self.sync_call("max_brightness")
+
+    def sync_call(self, method: str, **kwargs):
+        future = self.submit_async(partial(self.call, method, **kwargs), block=True)
+        return future.result()
 
     async def call(self, method: str, **kwargs):
         async with self.lock:  # dunno, might be needed...
@@ -214,6 +226,15 @@ class SerialRpcController(ControllerABC):
         return await self.call("set_brightness", channel=channel, brightness=brightness)
 
     scale_brightness = unscale_brightness = lambda s, x: x
+
+    def wifi(self, ssid: str, password: str):
+        return self.sync_call("wifi_connect", ssid=ssid, key=password)
+
+    def wifi_status(self):
+        return self.sync_call("wifi_status")
+
+    def repl(self):
+        return self.sync_call("repl")
 
 
 class Channel:
