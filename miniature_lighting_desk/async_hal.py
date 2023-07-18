@@ -112,7 +112,7 @@ class WifiControllerABC(ControllerABC):
 
 class FreqencyMixin:
     @abstractmethod
-    def frequency(self, frequency_hz: int | None):
+    def frequency(self, frequency_hz: "int | None" = None):
         """Get or set pwm frequency."""
 
 
@@ -244,7 +244,7 @@ class SerialRpcController(WifiControllerABC, FreqencyMixin):
     def repl(self):
         return self.sync_call("repl")
 
-    def frequency(self, frequency_hz: int | None = None) -> int:
+    def frequency(self, frequency_hz: "int | None" = None) -> int:
         return self.sync_call("frequency", val_hz=frequency_hz)
 
 
