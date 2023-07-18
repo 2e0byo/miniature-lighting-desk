@@ -82,6 +82,27 @@ def repl(
     if not hasattr(controller, "repl"):
         raise ValueError("Dropping to repl not possible on this controller.")
     rich.print(controller(**kwargs).repl())
+    import serial
+    from serial.tools.miniterm import Miniterm
+
+    serial_instance = serial.serial_for_url(port or "/dev/ttyUSB0", 460_800)
+    if not hasattr(serial_instance, "cancel_read"):
+        serial_instance.timeout = 1
+    miniterm = Miniterm(serial_instance)
+    miniterm.set_tx_encoding("utf8")
+    miniterm.set_rx_encoding("utf8")
+
+    # miniterm.main(default_port=port or "/dev/ttyUSB0", default_baudrate=460800)
+    miniterm.start()
+    try:
+        miniterm.join()
+    except KeyboardInterrupt:
+        pass
+    print("--- Leaving repl ---")
+    miniterm.join()
+    miniterm.close()
+
+
 @app.command(help="Get or set pwm frequency.")
 def frequency(
     controller: _Controller = _Controller["16chan"].value,
