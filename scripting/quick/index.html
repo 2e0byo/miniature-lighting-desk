@@ -68,6 +68,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#set-brightness-in-background" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -605,6 +610,8 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
       
+        
+      
       
       <a href="./" class="md-nav__link md-nav__link--active">
         Quick Start
@@ -704,6 +711,25 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
@@ -714,41 +740,37 @@
                   </a>
                 
                 
-                  <h1>Quick Start</h1>
-                
                 <p>The easiest way to start off is to open and edit the demo I have
 provided.  So open <code>demo.py</code> in IDLE (Python’s inbuilt editor) and
 let’s have a look.  It begins like this:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">async_hal</span> <span class="k">as</span> <span class="nn">hal</span>  <span class="c1"># hal = Hardware Abstraction Layer</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a><span class="n">lighting_controller</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Controller</span><span class="p">()</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a><span class="n">red_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a><span class="n">white_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a><span class="c1"># set brightness in background</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a><span class="n">red_lamp</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</code></pre></div>
+<p>```python
+from math import pi, sin
+from time import sleep</p>
+<p>import async_hal as hal  # hal = Hardware Abstraction Layer</p>
+<p>lighting_controller = hal.Controller()
+red_lamp = hal.Channel(lighting_controller, 7)
+white_lamp = hal.Channel(lighting_controller, 0)</p>
+<h1 id="set-brightness-in-background">set brightness in background<a class="headerlink" href="#set-brightness-in-background" title="Permanent link">¤</a></h1>
+<p>red_lamp.set_brightness(0)
+```</p>
 <p>Copy this much into a new file called <code>quick_start.py</code> and save it 
 <em>in the same place you found demo.py</em>&#x2014;probably just on the usb
 stick.  Then change the last line to read:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="n">red_lamp</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+red_lamp.set_brightness(128)</code></p>
 <p>and press ‘run’.  There.  You wrote your first controlling script.</p>
 <p>The window which popped up when you pressed ‘run’ should still be
 open.  Type into it:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="n">red_lamp</span><span class="o">.</span><span class="n">set_percent_brightness</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+red_lamp.set_percent_brightness(0.75)</code></p>
 <p>and observe what happens.  Then press Ctrl-P: the line you just typed
 should appear.  Change the 0.75 to 0.25.  Press enter, and observe
 what happens.  Press Ctrl-P, then press it again: do you see how it
 lets you go ‘back’ through your input?  Replacing the ‘p’ with an ‘n’
 lets you go ‘forward’.  In this way you can do less typing.</p>
 <p>Try:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">fade_on</span><span class="p">()</span>
-</code></pre></div>
+<p><code>python
+white_lamp.fade_on()</code></p>
 <p>Notice how the white lamps takes around a second to fade on, but the
 code returns immediately: it’s fading in the background
 (‘asynchronously’).  This may or may not be what you want, depending

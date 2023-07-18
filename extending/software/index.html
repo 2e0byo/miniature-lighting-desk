@@ -789,23 +789,23 @@ name, so we can go back and retrieve the original if need be.  Call
 the new name <code>gui2.py</code>.</p>
 <p>We are going to add a ‘zero’ button which zeros every channel.  For
 this we need a function which zeros channels.  After the lines</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a>    <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ChannelSlider</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">master</span><span class="p">))</span>
-</code></pre></div>
+<p><code>python
+for i in range(8):
+    channels.append(ChannelSlider(i, master))</code></p>
 <p>add the following:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="k">def</span> <span class="nf">zero</span><span class="p">():</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="__codelineno-1-2"></a>    <span class="sd">&quot;&quot;&quot;Zero everything.&quot;&quot;&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="__codelineno-1-3"></a>    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="__codelineno-1-4"></a>        <span class="n">channel</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+def zero():
+    """Zero everything."""
+    for channel in channels:
+        channel.set(0)</code></p>
 <p>Now we need a button to call this function.  After:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="n">save_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save State&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">save_state</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="__codelineno-2-2"></a><span class="n">save_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">8</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+save_button = Button(master, text="Save State", command=save_state)
+save_button.grid(column=8 - 3, row=3)</code></p>
 <p>add:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="n">zero_button</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Zero&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">zero</span><span class="p">)</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="__codelineno-3-2"></a><span class="n">zero_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+zero_button = Button(master, text="Zero", command=zero)
+zero_button.grid(column=0, row=3)</code></p>
 <p>save it and run.  Now you have a zero button.</p>
 <ol>
 <li>
@@ -823,13 +823,13 @@ doesn&rsquo;t actually move the other channels, but they get multiplier by
 it before the controller is set.)</p>
 <p>This will require editing the definition of <code>ChannelSlider</code>.  I
 personally would just edit the <code>set</code> method.  Perhaps something like:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">*</span> <span class="n">master_slider</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">/</span> <span class="mi">100</span><span class="p">))</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span>
-</code></pre></div>
+<p><code>python
+    def set(self, val):
+        self.channel.set_brightness(int(float(val) * master_slider.get() / 100))
+        self.slider.set(int(float(val)))</code></p>
 <p>and then define <code>master slider</code> as something like:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="__codelineno-5-1"></a>    <span class="n">master_slider</span> <span class="o">=</span> <span class="n">Scale</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+    master_slider = Scale(master, from_=100, to=0, length=300, orient="horizontal")</code></p>
 <p>and place it below the other sliders.</p>
 <p>Get in touch if you try this and have problems: I&rsquo;ve only provided the
 outline here.</p>

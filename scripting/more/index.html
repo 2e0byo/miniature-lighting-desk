@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#going-further" class="md-skip">
+        <a href="#set-brightness-in-background" class="md-skip">
           Skip to content
         </a>
       
@@ -624,40 +624,12 @@
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
       
+        
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          More Details
-          <span class="md-nav__icon md-icon"></span>
-        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         More Details
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#going-further" class="md-nav__link">
-    Going further
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -750,21 +722,8 @@
   
   
   
+    
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#going-further" class="md-nav__link">
-    Going further
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -781,22 +740,18 @@
                   </a>
                 
                 
-                  <h1>More Details</h1>
-                
                 <p>There, that was easy!   Let’s take another look at demo.py.  Here is
 the beginning again:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a><span class="kn">import</span> <span class="nn">async_hal</span> <span class="k">as</span> <span class="nn">hal</span>  <span class="c1"># hal = Hardware Abstraction Layer</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="__codelineno-0-6"></a><span class="n">lighting_controller</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Controller</span><span class="p">()</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="__codelineno-0-7"></a><span class="n">red_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="__codelineno-0-8"></a><span class="n">white_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="__codelineno-0-10"></a><span class="c1"># set brightness in background</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="__codelineno-0-11"></a><span class="n">red_lamp</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</code></pre></div>
+<p>```python
+from math import pi, sin
+from time import sleep</p>
+<p>import async_hal as hal  # hal = Hardware Abstraction Layer</p>
+<p>lighting_controller = hal.Controller()
+red_lamp = hal.Channel(lighting_controller, 7)
+white_lamp = hal.Channel(lighting_controller, 0)</p>
+<h1 id="set-brightness-in-background">set brightness in background<a class="headerlink" href="#set-brightness-in-background" title="Permanent link">¤</a></h1>
+<p>red_lamp.set_brightness(0)
+```</p>
 <p>Anything after a <code>#</code> is a ‘comment’, i.e. it’s for you, not the
 computer, which just ignores it.  The first two lines ‘import’ things
 from ‘libraries’&#x2014;i.e. ‘other code’.  The ‘math’ library is built
@@ -814,8 +769,8 @@ of you.  From your point of view it’s just a function which returns an
 ‘object’, which we call <code>lighting_controller</code>.</p>
 <p>Once we have an object representing the controller, we make an object
 for each of the channels:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="__codelineno-1-1"></a><span class="n">red_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+red_lamp = hal.Channel(lighting_controller, 7)</code></p>
 <p>The <code>Channel</code> class in the hall represents a channel <em>on a
 controller</em>.  So you have to tell it <em>which</em> controller.  We only have
 one: the one we just made a representation of!  We also need to know
@@ -824,24 +779,25 @@ which channel on the ‘hardware’ correlates with this channel on the
 <p>This is conceptually quite complicated, but very easy in practice.
 For instance, let’s make a Channel object for the third channel.
 Remember we start counting at 0:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="__codelineno-2-1"></a><span class="n">third_channel</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+third_channel = hal.Channel(lighting_controller, 2)</code></p>
 <p>We could have called it something else.  Perhaps we have a street lamp
 attached to channel 3:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="__codelineno-3-1"></a><span class="n">street_lamp</span> <span class="o">=</span> <span class="n">hal</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">lighting_controller</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-</code></pre></div>
+<p><code>python
+street_lamp = hal.Channel(lighting_controller, 3)</code></p>
 <p>The <em>name</em> we give it is just a variable.  It can contain pretty much
 anything, if we stick to the alphabet and the underscore (<code>_</code>).</p>
 <p>Each channel object has few methods.  Here they are:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="__codelineno-4-1"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="__codelineno-4-2"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">set_percent_brightness</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="__codelineno-4-3"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">get_brightness</span><span class="p">()</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="__codelineno-4-4"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">get_percent_brightness</span><span class="p">()</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="__codelineno-4-5"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">fade_on</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="__codelineno-4-6"></a><span class="c1"># wait a second before typing</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="__codelineno-4-7"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">fade_off</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="__codelineno-4-8"></a><span class="n">white_lamp</span><span class="o">.</span><span class="n">cancel_fade</span><span class="p">()</span>
-</code></pre></div>
+<p>```python
+white_lamp.set_brightness(128)
+white_lamp.set_percent_brightness(0.1)
+white_lamp.get_brightness()
+white_lamp.get_percent_brightness()
+white_lamp.fade_on(1)</p>
+<h1 id="wait-a-second-before-typing">wait a second before typing<a class="headerlink" href="#wait-a-second-before-typing" title="Permanent link">¤</a></h1>
+<p>white_lamp.fade_off(100)
+white_lamp.cancel_fade()
+```</p>
 <p>Additionally, when we initialise a Channel object it queries the
 controller for the current setting on that channel, so the
 software never gets out of sync with the hardware.  (This is used in

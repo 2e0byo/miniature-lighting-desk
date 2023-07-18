@@ -845,12 +845,12 @@ in parallel, as they switch at the same time, but you should be
 careful to make sure they really <em>do</em> have the same value all the
 time.  This would be quite easy if we were scripting, we could do
 something like:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="__codelineno-0-1"></a><span class="k">def</span> <span class="nf">set_parallel_output</span><span class="p">(</span><span class="n">brightness</span><span class="p">):</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="__codelineno-0-2"></a>    <span class="n">output_one</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="n">brightness</span><span class="p">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="__codelineno-0-3"></a>    <span class="n">output_two</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="n">brightness</span><span class="p">)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="__codelineno-0-5"></a><span class="n">set_parallel_output</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
-</code></pre></div>
+<p>```python
+def set_parallel_output(brightness):
+    output_one.set_brightness(brightness)
+    output_two.set_brightness(brightness)</p>
+<p>set_parallel_output(128)
+```</p>
 <p>where <code>output_one</code> and <code>output_two</code> are already defined, like
 <code>red_lamp</code> etc in the scripting section.  Alternatively you could have
 one slider control multiple outputs.  Have a go at implementing this
