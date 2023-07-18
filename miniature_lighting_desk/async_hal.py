@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from functools import partial
 from re import search
 from threading import Thread
-from time import sleep
+from time import monotonic, sleep
 
 import usb
 from aioserial import AioSerial
@@ -229,7 +229,9 @@ class SerialRpcController(WifiControllerABC, FreqencyMixin):
     async def _async_set_brightness(
         self, channel: int, brightness: int, pause: float = 0
     ) -> None:
-        return await self.call("set_brightness", channel=channel, brightness=brightness)
+        start = monotonic()
+        await self.call("set_brightness", channel=channel, brightness=brightness)
+        await asyncio.sleep(max(0, pause - (monotonic() - start)))
 
     scale_brightness = unscale_brightness = lambda s, x: x
 
