@@ -110,6 +110,12 @@ class WifiControllerABC(ControllerABC):
         """Get controller wifi status."""
 
 
+class FreqencyMixin:
+    @abstractmethod
+    def frequency(self, frequency_hz: int | None):
+        """Get or set pwm frequency."""
+
+
 class MockController(ControllerABC):
     def __init__(self, *args, no_channels=8, **kwargs):
         self.no_channels = no_channels
@@ -196,7 +202,7 @@ class PinguinoController(ControllerABC):
         return self.max_brightness - scaled
 
 
-class SerialRpcController(WifiControllerABC):
+class SerialRpcController(WifiControllerABC, FreqencyMixin):
     def __init__(self, *args, port="/dev/ttyUSB0", **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.serial = AioSerial(port=port, baudrate=460800)
@@ -235,6 +241,9 @@ class SerialRpcController(WifiControllerABC):
 
     def repl(self):
         return self.sync_call("repl")
+
+    def frequency(self, frequency_hz: int | None = None) -> int:
+        return self.sync_call("frequency", val_hz=frequency_hz)
 
 
 class Channel:

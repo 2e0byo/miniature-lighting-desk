@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from getpass import getpass
-from typing import Literal
+from typing import Literal, Optional
 
 import rich
 import typer
@@ -82,6 +82,17 @@ def repl(
     if not hasattr(controller, "repl"):
         raise ValueError("Dropping to repl not possible on this controller.")
     rich.print(controller(**kwargs).repl())
+@app.command(help="Get or set pwm frequency.")
+def frequency(
+    controller: _Controller = _Controller["16chan"].value,
+    port: str = "",
+    frequency_hz: Optional[int] = None,
+):
+    kwargs = {"port": port} if port else {}
+    controller = controllers[controller.value]
+    if not hasattr(controller, "frequency"):
+        raise ValueError("Dropping to repl not possible on this controller.")
+    rich.print(controller(**kwargs).frequency(frequency_hz))
 
 
 if __name__ == "__main__":
