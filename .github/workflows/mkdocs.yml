@@ -13,14 +13,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-
-      - uses: Gr1N/setup-poetry@v7
-      - uses: actions/cache@v2
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
-        
+          cache: 'poetry'
       - run: |
           poetry install
           poetry run mkdocs build
@@ -30,15 +28,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
-
-    # name: Deploy docs
-    # runs-on: ubuntu-latest
-    # steps:
-    #   - name: Checkout main
-    #     uses: actions/checkout@v2
-
-    #   - name: Deploy docs
-    #     uses: mhausenblas/mkdocs-deploy-gh-pages@master
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #       EXTRA_PACKAGES: build-base
