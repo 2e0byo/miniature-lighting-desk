@@ -3,21 +3,21 @@
 is deployed on `pypi`. To install it you need a recent python (>=3.9) installed,
 and then you can run in a terminal:
 
-```bash
+```
 python3 -m pip install miniature-lighting-desk
 ```
 
 or, if you prefer to use pipx (note that it will not be possible to use the
 scripting interface if you install with pipx):
 
-```bash
+```
 pipx install miniature-lighting-desk
 ```
 
 When the server is installed, it needs to be started. You run it in a terminal
 with:
 
-```bash
+```
 lighting_desk server
 ```
 
@@ -26,7 +26,7 @@ lighting_desk server
 
 is installed with the server.  You run it with:
 
-```bash
+```
 lighting_desk local-gui
 ```
 
@@ -34,7 +34,7 @@ lighting_desk local-gui
 
 Clone this repository, and then run
 
-```bash
+```
 poetry install
 poetry shell
 ```
@@ -43,7 +43,7 @@ poetry shell
 
 Clone [2e0byo/lighting-desk](https://github.com/2e0byo/lighting-desk) and then run
 
-```bash
+```
 cd lighting-desk
 yarn install
 yarn serve
