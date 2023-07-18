@@ -8,7 +8,6 @@ import typer
 
 from . import server
 from .async_hal import WifiControllerABC, controllers
-from .local_gui import main as gui
 
 app = typer.Typer()
 
@@ -21,6 +20,8 @@ def local_gui(
     controller: _Controller = _Controller.pinguino,
     port: str = "",
 ):
+    from .local_gui import main as gui
+
     kwargs = {"port": port} if port else {}
     controller = controllers[controller.value](**kwargs)
     gui(controller)
