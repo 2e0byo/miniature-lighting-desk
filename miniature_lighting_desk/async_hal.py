@@ -255,14 +255,11 @@ class Channel:
         self,
         controller: ControllerABC,
         channel_number,
-        on_brightness=256,
-        off_brightness=0,
     ):
         self.controller = controller
         self.channel_number = channel_number
         self._query()  # get brightness
-        self.on_brightness = on_brightness
-        self.off_brightness = off_brightness
+        self.on_brightness = controller.max_brightness
 
     def _query(self):
         """Get current value from controller."""
@@ -284,13 +281,13 @@ class Channel:
     def set_percent_brightness(self, brightness):
         """Set brightness for channel as a percentage, represented by a float between 0
         and 1."""
-        self.value = round(brightness * 256)
+        self.value = round(brightness * self.on_brightness)
         self._set_value()
 
     def get_percent_brightness(self):
         """Get brightness for channel as a percentage, represented by a float between 0
         and 1."""
-        return self.value / 255
+        return self.value / self.on_brightness
 
     def fade_on(self, fade_time=1):
         """
@@ -315,9 +312,9 @@ class Channel:
         will query the controller for it.)
         """
         self.fade_future = self.controller.fade_brightness(
-            self.channel_number, self.value, self.off_brightness, fade_time
+            self.channel_number, self.value, 0, fade_time
         )
-        self.value = self.off_brightness
+        self.value = 0
 
     def cancel_fade(self):
         """Cancel ongoing fade and then query controller for actual channel value."""
