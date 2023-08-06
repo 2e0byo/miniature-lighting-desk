@@ -71,7 +71,7 @@ class App:
             for row in reader:
                 states = row  # we just take the last row
 
-        if len(states) != 8:
+        if len(states) != self.lighting_controller.no_channels:
             print("Input file is corrupt.")  # we should use a dialog box for this.
 
         try:
