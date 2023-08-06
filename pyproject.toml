@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "miniature-lighting-desk"
-version = "0.4.3"
+version = "0.5.0"
 description = "Desk software for Miniature Lighting Controller"
 authors = ["John Maximilian <2e0byo@gmail.com>"]
 license = "MIT"
