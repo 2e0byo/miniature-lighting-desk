@@ -48,10 +48,12 @@ class ControllerABC(ABC):
 
     def _start_async(self):
         """Start an asyncio loop in the background."""
+        print("Starting async thread... ", end="")
         self.loop = asyncio.new_event_loop()
         t = Thread(target=self.loop.run_forever)
         t.daemon = True
         t.start()
+        print("done")
 
     def stop_async(self):
         """Stop background asyncio loop."""
@@ -119,19 +121,26 @@ class FreqencyMixin:
 
 class MockController(WifiControllerABC, FreqencyMixin):
     def __init__(self, *args, no_channels=8, **kwargs):
+        super().__init__(*args, **kwargs)
         self.no_channels = no_channels
         self.vals = [0] * no_channels
         self.max_brightness = 100
-        super().__init__(*args, **kwargs)
         self._wifi = {}
         self._frequency = 10_000
+        self.lock = asyncio.Lock()
+        self.submit_async(self.init, block=True)
+
+    async def init(self):
+        async with self.lock:
+            print("locked!")
 
     async def _async_set_brightness(
         self, channel: int, brightness: int, pause: float = 0
     ) -> None:
-        self.vals[channel] = brightness
-        print(f"Setting channel {channel} to {brightness}")
-        await asyncio.sleep(pause)
+        async with self.lock:
+            self.vals[channel] = brightness
+            print(f"Setting channel {channel} to {brightness}")
+            await asyncio.sleep(pause)
 
     async def _async_get_brightness(self, channel: int) -> int:
         print(f"Getting brightness for channel {channel}")
@@ -232,10 +241,13 @@ class SerialRpcController(WifiControllerABC, FreqencyMixin):
         super().__init__(*args, **kwargs)
         if not port:
             port = find_port()
-        self.serial = AioSerial(port=port, baudrate=460800)
-        self.lock = asyncio.Lock()
+        self.submit_async(partial(self.init, port=port), block=True)
         self.no_channels = self.sync_call("channel_count")
         self.max_brightness = self.sync_call("max_brightness")
+
+    async def init(self, port):
+        self.serial = AioSerial(port=port, baudrate=460800)
+        self.lock = asyncio.Lock()
 
     def sync_call(self, method: str, **kwargs):
         future = self.submit_async(partial(self.call, method, **kwargs), block=True)
