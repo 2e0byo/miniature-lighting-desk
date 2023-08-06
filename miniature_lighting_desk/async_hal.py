@@ -150,6 +150,7 @@ class MockController(WifiControllerABC, FreqencyMixin):
 
     def wifi(self, ssid: str, password: str) -> dict:
         self._wifi = dict(ssid=ssid, password=password)
+        return self._wifi
 
     def wifi_status(self) -> dict:
         return self._wifi
