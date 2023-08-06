@@ -17,7 +17,7 @@ _Controller = Enum("_Controller", {k: k for k in controllers.keys()})
 
 @app.command(help="Run local gui.")
 def local_gui(
-    controller: _Controller = _Controller.pinguino,
+    controller: _Controller = _Controller.pinguino.value,
     port: str = "",
 ):
     from .local_gui import main as gui
@@ -29,7 +29,7 @@ def local_gui(
 
 @app.command(help="Run backend for web gui.")
 def backend(
-    controller: _Controller = _Controller.pinguino,
+    controller: _Controller = _Controller.pinguino.value,
     password: str = "",
     port: str = "",
 ):
