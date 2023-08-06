@@ -7,7 +7,7 @@ import rich
 import typer
 
 from . import server
-from .async_hal import WifiControllerABC, controllers
+from .async_hal import WifiControllerABC, controllers, find_port
 
 app = typer.Typer()
 
@@ -86,14 +86,13 @@ def repl(
     import serial
     from serial.tools.miniterm import Miniterm
 
-    serial_instance = serial.serial_for_url(port or "/dev/ttyUSB0", 460_800)
+    serial_instance = serial.serial_for_url(port or find_port(), 460_800)
     if not hasattr(serial_instance, "cancel_read"):
         serial_instance.timeout = 1
     miniterm = Miniterm(serial_instance)
     miniterm.set_tx_encoding("utf8")
     miniterm.set_rx_encoding("utf8")
 
-    # miniterm.main(default_port=port or "/dev/ttyUSB0", default_baudrate=460800)
     miniterm.start()
     try:
         miniterm.join()

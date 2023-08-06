@@ -1,6 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 from functools import partial
+from pathlib import Path
 from re import search
 from threading import Thread
 from time import monotonic, sleep
@@ -215,9 +216,22 @@ class PinguinoController(ControllerABC):
         return self.max_brightness - scaled
 
 
+def find_port() -> str:
+    for base, glob in (
+        (Path("/dev"), "ttyUSB*"),  # linux
+        (Path("/dev"), "tty.usb*"),  # Mac
+    ):
+        for fn in base.glob(glob):
+            if fn.is_file():
+                return str(fn)
+    raise RuntimeError("No serial port found: pass path if present.")
+
+
 class SerialRpcController(WifiControllerABC, FreqencyMixin):
-    def __init__(self, *args, port="/dev/ttyUSB0", **kwargs) -> None:
+    def __init__(self, *args, port: "str | None" = None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        if not port:
+            port = find_port()
         self.serial = AioSerial(port=port, baudrate=460800)
         self.lock = asyncio.Lock()
         self.no_channels = self.sync_call("channel_count")
