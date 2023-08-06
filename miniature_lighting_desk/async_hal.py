@@ -116,12 +116,14 @@ class FreqencyMixin:
         """Get or set pwm frequency."""
 
 
-class MockController(ControllerABC):
+class MockController(WifiControllerABC, FreqencyMixin):
     def __init__(self, *args, no_channels=8, **kwargs):
         self.no_channels = no_channels
         self.vals = [0] * no_channels
         self.max_brightness = 100
         super().__init__(*args, **kwargs)
+        self._wifi = {}
+        self._frequency = 10_000
 
     async def _async_set_brightness(
         self, channel: int, brightness: int, pause: float = 0
@@ -135,6 +137,17 @@ class MockController(ControllerABC):
         return self.vals[channel]
 
     scale_brightness = unscale_brightness = lambda s, x: x
+
+    def wifi(self, ssid: str, password: str) -> dict:
+        self._wifi = dict(ssid=ssid, password=password)
+
+    def wifi_status(self) -> dict:
+        return self._wifi
+
+    def frequency(self, frequency_hz: "int | None" = None):
+        if frequency_hz:
+            self._frequency = frequency_hz
+        return self._frequency
 
 
 class PinguinoController(ControllerABC):
